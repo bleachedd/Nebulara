@@ -5,6 +5,15 @@ if (localStorage.getItem("theme") === "dark") {
 if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("dark-light");
 }
+// Tampilkan popup saat tombol "Tentang Kami" diklik
+document.getElementById("tentangKamiBtn").addEventListener("click", function () {
+    document.getElementById("about-popup").classList.add("active");
+});
+
+// Tutup popup saat tombol "Tutup" diklik
+function closePopup() {
+    document.getElementById("about-popup").classList.remove("active");
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const darkModeToggle = document.getElementById("darkModeToggle");
@@ -36,6 +45,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let cityList = document.getElementById("cityList");
     let citiesData = [];
+    function updateAQI() {
+        cityList.innerHTML = "";
+        citiesData = [];
+
+        fetch(overpassURL)
+            .then(response => response.json())
+            .then(data => {
+                let cityArray = [];
+
+                data.elements.forEach(city => {
+                    let name = city.tags.name;
+                    let coords = [city.lat, city.lon];
+                    cityArray.push({ name, coords });
+                });
+
+                // Urutkan kota dari A-Z
+                cityArray.sort((a, b) => a.name.localeCompare(b.name));
+
+                // Ambil AQI untuk masing-masing kota yang sudah diurutkan
+                cityArray.forEach(city => getAQI(city.name, city.coords));
+            })
+            .catch(error => console.error("Error mengambil data kota dari Overpass API:", error));
+    }
 
     function getAQI(city, coords) {
         let url = `https://api.waqi.info/feed/geo:${coords[0]};${coords[1]}/?token=${API_KEY}`;
